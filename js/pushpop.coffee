@@ -18,7 +18,7 @@ PushPop = ->
 
         player = new Sprite {image: "img/shotgun.png", x:0, y: yLevel - blockSize , anchor: "top-left"}
 
-        preventDefaultKeys ["up", "down", "left", "right", "space"]
+        jaws.preventDefaultKeys ["up", "down", "left", "right", "space"]
         return
 
     @update = ->
