@@ -1,6 +1,6 @@
 # Simple Game in CoffeeScript
 
-PushPop = ->
+PushPop = (menu) ->
     blocks = new SpriteList
     player = null
     robot = null
@@ -55,11 +55,12 @@ PushPop = ->
         robot.turn(moveTowardsPlayer robot)
 
         if doCollide(player, robot)
-            console.log "Hurt Player"
+            player.hurt(1)
 
         if !player.alive
-            jaws.switchGameState(MenuState)
+            jaws.switchGameState(menu)
         return
+
     @draw = ->
         jaws.clear() 
         blocks.draw()
@@ -117,7 +118,6 @@ class Creature
     turn: (dir) -> 
         speed = @sprite.rect.width
 
-        console.log speed
         if dir == "right"
             speed = -speed
 
@@ -134,30 +134,28 @@ class Creature
         # Extend this to make rotation work properly
         @sprite.rotate(angle)
 
-MenuState = ->
-    items = [
-        "Start",
-        "Highscore"
-    ]
-    index = 0
+class Menu
+    constructor: (@items) ->
+        console.log "Items: #{items}"
+        @index = 0;
 
-    @setup = ->
-        index = 0
-        jaws.on_keydown(["down", "s"], ->
-            if (index + 1) < items.length
-                index++
-        )
-        jaws.on_keydown(["up", "w"], ->
-            if (index - 1) >= 0
-                index--
-        )
-        jaws.on_keydown(["enter", "space"], ->
-            if items[index] == "Start"
-                jaws.switchGameState(PushPop)
-        )
+    setup: ->
+        console.log "Setup, items: #{@items}"
+        @index = 0
+        jaws.preventDefaultKeys ["up", "down", "left", "right", "space"]
         return
 
-    @draw = ->
+    update: ->
+
+        if pressed "down" || pressed "s"
+            if (@index + 1) < @items.length
+                @index++
+        if pressed "up" || pressed "w"
+            if (@index - 1) >= 0
+                @index--
+        if pressed "enter" || pressed "space"
+            jaws.switchGameState(@items[@index].func) if @items[@index].func?
+    draw: ->
         jaws.context.clearRect(0,0,jaws.width,jaws.height)
         jaws.context.font = "bold 50pt Serif"
         jaws.context.lineWidth = 10
@@ -165,16 +163,32 @@ MenuState = ->
         jaws.context.strokeStyle = "rgba(200,200,200, 0.0)"
         i = 0
         colour = ""
-        for item in items
-            colour = if i == index then "Red" else "Black"
+        for item in @items
+            colour = if i == @index then "Red" else "Black"
             jaws.context.fillStyle = colour 
-            jaws.context.fillText(item, 30, 100 + i * 60)
+            jaws.context.fillText(item.name, 30, 100 + i * 60)
             i++
         return
 
-    @
+    addMenu:(menu) ->
+        # Add a menu item to the end of the list
+        @items.push menu
+        return
 
 jaws.onload = ->
+
+    MenuState = new Menu([
+        {name: "Start", func: ->
+            PushPop(HighScore)
+        }
+    ])
+
+    HighScore = new Menu([
+        {name: "Score 1: 5", func: null},
+        { name: "Main Menu", func: MenuState }
+    ])
+
+    MenuState.addMenu { name: "Highscore", func: HighScore }
     jaws.unpack()
     jaws.assets.add("img/block.png")
     jaws.assets.add("img/shotgun.png")
