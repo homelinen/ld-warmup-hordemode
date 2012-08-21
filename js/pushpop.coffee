@@ -61,7 +61,7 @@ PushPop = ->
 
         moveTowardsPlayer robot
 
-        if robot.x == player.x
+        if doCollide(player, robot)
             console.log "Hurt Player"
         return
     @draw = ->
@@ -90,12 +90,45 @@ PushPop = ->
         sprite.move xVal, 0
         return
         
+    doCollide = (sprite1, sprite2) ->
+
+        minx1 = sprite1.x
+        minx2 = sprite2.x
+
+        maxx1 = minx1 + blockSize
+        maxx2 = minx2 + blockSize
+
+        if minx1 < maxx2 && minx1 > minx2
+            true
+        else if minx2 < maxx1 && minx2 > minx1
+            true
+        else 
+            false
+
     turnSprite = (sprite) ->
         direction = - 1
         sprite.flip()
         sprite.move(blockSize * direction)
     
     return @
+
+class Creature
+    constructor: (@sprite, @health, @direction) ->
+        @x = @sprite.x
+        @y = @sprite.y
+
+    hurt: (damage) ->
+        @health = @health - damage
+
+   turn: -> 
+        if @direction == "right"
+            @sprite.flip()
+            @direction = "left"
+            @sprite.move(-blockSize, 0)
+        else if @direction == "left"
+            @sprite.flip()
+            @direction = "right"
+            @sprite.move(blockSize, 0)
 
 jaws.onload = ->
     jaws.unpack()
