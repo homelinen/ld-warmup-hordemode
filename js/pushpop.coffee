@@ -2,8 +2,8 @@
 
 PushPop = ->
     blocks = new SpriteList
-    player = new Sprite {x:0, y: 0}
-    robot = new Sprite {x:0, y: 0}
+    player = null
+    robot = null
     blockSize = 32
     playerFacing = ""
 
@@ -24,9 +24,9 @@ PushPop = ->
 
         jaws.log "#{tile_map}"
         playerLevel = yLevel - blockSize
-        player = new Sprite {image: "img/shotgun.png", x: blockSize, y: playerLevel , anchor: "top-left"}
-        player.flip()
-        playerFacing = "right"
+        playerSprite = new Sprite {image: "img/shotgun.png", x: blockSize, y: playerLevel , anchor: "top-left"}
+        player = new Creature playerSprite, 10, "left"
+        player.turn("right")
 
         robot = new Sprite {
             image: "img/robot.png", 
@@ -39,18 +39,10 @@ PushPop = ->
 
     @update = ->
         if (pressed("left")) 
-            if playerFacing == "right"
-                player.flip()
-                playerFacing = "left"
-                player.move(-blockSize, 0)
-
+            player.turn("left")
             player.move(-2, 0)
         if (pressed("right")) 
-            if playerFacing == "left"
-                player.flip()
-                playerFacing = "right"
-                player.move(blockSize, 0)
-                
+            player.turn("right")
             player.move(2, 0)
         if pressed("up") 
             player.rotate(-5)
@@ -67,7 +59,7 @@ PushPop = ->
     @draw = ->
         jaws.clear() 
         blocks.draw()
-        player.draw()
+        player.sprite.draw()
         robot.draw()
         return
     
@@ -75,7 +67,7 @@ PushPop = ->
         # Move an enemy closer to the player
         # sprite The sprite to be moved
 
-        playX = player.x
+        playX = player.sprite.x
         sprX = sprite.x
 
         #This is the speed of the movement
@@ -105,30 +97,27 @@ PushPop = ->
         else 
             false
 
-    turnSprite = (sprite) ->
-        direction = - 1
-        sprite.flip()
-        sprite.move(blockSize * direction)
-    
     return @
 
 class Creature
     constructor: (@sprite, @health, @direction) ->
-        @x = @sprite.x
-        @y = @sprite.y
 
     hurt: (damage) ->
         @health = @health - damage
 
-   turn: -> 
-        if @direction == "right"
+    turn: (dir) -> 
+        speed = @sprite.rect.width
+        if @direction != dir
             @sprite.flip()
-            @direction = "left"
-            @sprite.move(-blockSize, 0)
-        else if @direction == "left"
-            @sprite.flip()
-            @direction = "right"
-            @sprite.move(blockSize, 0)
+            @direction = dir
+            @sprite.move(-speed, 0)
+
+    move: (x, y) ->
+        @sprite.move x, y
+
+    rotate: (angle) ->
+        # Extend this to make rotation work properly
+        @sprite.rotate(angle)
 
 jaws.onload = ->
     jaws.unpack()
