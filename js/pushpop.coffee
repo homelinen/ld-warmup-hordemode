@@ -6,7 +6,7 @@ RIGHT = 1
 PushPop = (menu) ->
     blocks = new SpriteList
     player = null
-    robot = null
+    robots = []
     bulletSprite = null
     bullets = []
     blockSize = 32
@@ -40,6 +40,8 @@ PushPop = (menu) ->
         }
         robot = new Creature robotSprite, 5, RIGHT
         robot.turn LEFT
+
+        robots.push robot
         jaws.preventDefaultKeys ["up", "down", "left", "right", "space"]
 
         bulletSprite = new Sprite { image: "img/bullet.png", x: 0, y: 0 }
@@ -57,33 +59,58 @@ PushPop = (menu) ->
         if pressed("down")
             player.rotate(5)
         if pressed("space")
-            tempBullet = bulletSprite
-            tempBullet.moveTo player.sprite.x, player.sprite.y
+            tempBullet = new Sprite { image: "img/bullet.png", x: player.sprite.x, y: player.sprite.y }
             bullets.push { sprite: tempBullet, direction: player.direction }
             console.log "Shoot!"
 
-        robot.turn(moveTowardsPlayer robot)
+        i = 0
+        while i < robots.length
+            robot = robots[i]
+            if !robot.alive
+                robots.splice(i, 1)
+                i--
+            if robot?
+                robot.turn(moveTowardsPlayer robot)
 
-        if doCollide(player, robot)
-            player.hurt(1)
+                if doCollide(player, robot)
+                    player.hurt(1)
 
-        for bullet in bullets
+                for bullet in bullets
+
+                    if doCollide(robot, bullet)
+                        robot.hurt(1)
+            i++
+        
+        i = 0
+        while i < bullets.length
+            bullet = bullets[i]
             bullet.sprite.move(bullet.direction, 0)
-
+            if bullet.sprite.x > jaws.width || bullet.sprite.x < 0
+                bullets.splice(i, 1)
+                i--;
+            i++
+            
         if !player.alive
             jaws.switchGameState(menu)
+
         return
 
     @draw = ->
         jaws.clear() 
         blocks.draw()
         player.sprite.draw()
-        robot.sprite.draw()
+        for robot in robots
+            robot.sprite.draw()
 
         for bullet in bullets
             bullet.sprite.draw()
         return
     
+    removeNull = (a) ->
+        a.filter( (val)->
+            val.sprite?
+
+        )
     moveTowardsPlayer = (creature) ->
         # Move an enemy closer to the player
         # creature The sprite to be moved
