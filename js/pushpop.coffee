@@ -9,15 +9,20 @@ PushPop = ->
 
     @setup = ->
 
+        jaws.log(jaws.width)
         block = "img/block.png"
         yLevel = 7 * blockSize
+        arenaLength = (jaws.width / blockSize) - 1
         # Skip the 5th block
-        for xPos in [0..9] 
+        for xPos in [0..arenaLength] 
             blocks.push new Sprite { image: block, x: (xPos * blockSize), y: yLevel }
 
-        tile_map = new TileMap { size: [10, 10], cell_size: [32,32]}
+        jaws.log "Blocks: #{blocks}"
+        tile_map = new TileMap { cell_size: [32,32]}
+        jaws.log "Reached: #{tile_map}"
         tile_map.push blocks
 
+        jaws.log "#{tile_map}"
         playerLevel = yLevel - blockSize
         player = new Sprite {image: "img/shotgun.png", x: blockSize, y: playerLevel , anchor: "top-left"}
         player.flip()
@@ -25,7 +30,7 @@ PushPop = ->
 
         robot = new Sprite {
             image: "img/robot.png", 
-            x: 7 * blockSize, 
+            x: jaws.width - blockSize, 
             y: playerLevel - blockSize
         }
         robot.flip()
@@ -39,14 +44,14 @@ PushPop = ->
                 playerFacing = "left"
                 player.move(-blockSize, 0)
 
-            player.move(-1, 0)
+            player.move(-2, 0)
         if (pressed("right")) 
             if playerFacing == "left"
                 player.flip()
                 playerFacing = "right"
                 player.move(blockSize, 0)
                 
-            player.move(1, 0)
+            player.move(2, 0)
         if pressed("up") 
             player.rotate(-5)
         if pressed("down")
@@ -79,6 +84,8 @@ PushPop = ->
         if playX < sprX
             #Move Left, as player is left
             xVal = -xVal
+        else if playX == sprX
+            xVal = 0
 
         sprite.move xVal, 0
         return
