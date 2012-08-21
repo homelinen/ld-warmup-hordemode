@@ -1,9 +1,14 @@
 # Simple Game in CoffeeScript
 
+LEFT = -1
+RIGHT = 1
+
 PushPop = (menu) ->
     blocks = new SpriteList
     player = null
     robot = null
+    bulletSprite = null
+    bullets = []
     blockSize = 32
     playerFacing = ""
 
@@ -25,37 +30,43 @@ PushPop = (menu) ->
         jaws.log "#{tile_map}"
         playerLevel = yLevel - blockSize
         playerSprite = new Sprite {image: "img/shotgun.png", x: blockSize, y: playerLevel , anchor: "top-left"}
-        player = new Creature playerSprite, 10, "left"
-        player.turn("right")
+        player = new Creature playerSprite, 10, LEFT
+        player.turn(RIGHT)
 
         robotSprite = new Sprite {
             image: "img/robot.png", 
             x: jaws.width - blockSize, 
             y: playerLevel - blockSize
         }
-        robot = new Creature robotSprite, 5, "right"
-        robot.turn("left")
+        robot = new Creature robotSprite, 5, RIGHT
+        robot.turn LEFT
         jaws.preventDefaultKeys ["up", "down", "left", "right", "space"]
+
+        bulletSprite = new Sprite { image: "img/bullet.png", x: 0, y: 0 }
         return
 
     @update = ->
         if (pressed("left")) 
-            player.turn("left")
+            player.turn(LEFT)
             player.move(-2, 0)
         if (pressed("right")) 
-            player.turn("right")
+            player.turn(RIGHT)
             player.move(2, 0)
         if pressed("up") 
             player.rotate(-5)
         if pressed("down")
             player.rotate(5)
         if pressed("space")
+            bullets.push {sprite: bullet, direction: player.direction}
             console.log "Shoot!"
 
         robot.turn(moveTowardsPlayer robot)
 
         if doCollide(player, robot)
             player.hurt(1)
+
+        for bullet in bullets
+            bullet.sprite.move(bullet.direction, 0)
 
         if !player.alive
             jaws.switchGameState(menu)
@@ -81,10 +92,10 @@ PushPop = (menu) ->
         if playX < sprX
             #Move Left, as player is left
             xVal = -xVal
-            dir = "left"
+            dir = LEFT
         else if playX == sprX
             xVal = 0
-            dir = "right"
+            dir = RIGHT
 
         creature.move xVal, 0
         dir
@@ -118,7 +129,7 @@ class Creature
     turn: (dir) -> 
         speed = @sprite.rect.width
 
-        if dir == "right"
+        if dir == RIGHT
             speed = -speed
 
         if @direction != dir
