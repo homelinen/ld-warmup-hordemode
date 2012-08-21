@@ -57,7 +57,9 @@ PushPop = (menu) ->
         if pressed("down")
             player.rotate(5)
         if pressed("space")
-            bullets.push {sprite: bullet, direction: player.direction}
+            tempBullet = bulletSprite
+            tempBullet.moveTo player.sprite.x, player.sprite.y
+            bullets.push { sprite: tempBullet, direction: player.direction }
             console.log "Shoot!"
 
         robot.turn(moveTowardsPlayer robot)
@@ -77,6 +79,9 @@ PushPop = (menu) ->
         blocks.draw()
         player.sprite.draw()
         robot.sprite.draw()
+
+        for bullet in bullets
+            bullet.sprite.draw()
         return
     
     moveTowardsPlayer = (creature) ->
