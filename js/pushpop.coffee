@@ -28,12 +28,13 @@ PushPop = ->
         player = new Creature playerSprite, 10, "left"
         player.turn("right")
 
-        robot = new Sprite {
+        robotSprite = new Sprite {
             image: "img/robot.png", 
             x: jaws.width - blockSize, 
             y: playerLevel - blockSize
         }
-        robot.flip()
+        robot = new Creature robotSprite, 5, "right"
+        robot.turn("left")
         jaws.preventDefaultKeys ["up", "down", "left", "right", "space"]
         return
 
@@ -51,24 +52,27 @@ PushPop = ->
         if pressed("space")
             console.log "Shoot!"
 
-        moveTowardsPlayer robot
+        robot.turn(moveTowardsPlayer robot)
 
         if doCollide(player, robot)
             console.log "Hurt Player"
+
+        if !player.alive
+            jaws.switchGameState(MenuState)
         return
     @draw = ->
         jaws.clear() 
         blocks.draw()
         player.sprite.draw()
-        robot.draw()
+        robot.sprite.draw()
         return
     
-    moveTowardsPlayer = (sprite) ->
+    moveTowardsPlayer = (creature) ->
         # Move an enemy closer to the player
-        # sprite The sprite to be moved
+        # creature The sprite to be moved
 
         playX = player.sprite.x
-        sprX = sprite.x
+        sprX = creature.sprite.x
 
         #This is the speed of the movement
         xVal = 1
@@ -76,16 +80,18 @@ PushPop = ->
         if playX < sprX
             #Move Left, as player is left
             xVal = -xVal
+            dir = "left"
         else if playX == sprX
             xVal = 0
+            dir = "right"
 
-        sprite.move xVal, 0
-        return
+        creature.move xVal, 0
+        dir
         
-    doCollide = (sprite1, sprite2) ->
+    doCollide = (creature1, creature2) ->
 
-        minx1 = sprite1.x
-        minx2 = sprite2.x
+        minx1 = creature1.sprite.x
+        minx2 = creature2.sprite.x
 
         maxx1 = minx1 + blockSize
         maxx2 = minx2 + blockSize
@@ -101,16 +107,25 @@ PushPop = ->
 
 class Creature
     constructor: (@sprite, @health, @direction) ->
+        @alive = true
 
     hurt: (damage) ->
         @health = @health - damage
+        if @health < 1
+            @alive = false
 
     turn: (dir) -> 
         speed = @sprite.rect.width
+
+        console.log speed
+        if dir == "right"
+            speed = -speed
+
         if @direction != dir
             @sprite.flip()
             @direction = dir
-            @sprite.move(-speed, 0)
+
+            @sprite.move(speed, 0)
 
     move: (x, y) ->
         @sprite.move x, y
@@ -119,10 +134,50 @@ class Creature
         # Extend this to make rotation work properly
         @sprite.rotate(angle)
 
+MenuState = ->
+    items = [
+        "Start",
+        "Highscore"
+    ]
+    index = 0
+
+    @setup = ->
+        index = 0
+        jaws.on_keydown(["down", "s"], ->
+            if (index + 1) < items.length
+                index++
+        )
+        jaws.on_keydown(["up", "w"], ->
+            if (index - 1) >= 0
+                index--
+        )
+        jaws.on_keydown(["enter", "space"], ->
+            if items[index] == "Start"
+                jaws.switchGameState(PushPop)
+        )
+        return
+
+    @draw = ->
+        jaws.context.clearRect(0,0,jaws.width,jaws.height)
+        jaws.context.font = "bold 50pt Serif"
+        jaws.context.lineWidth = 10
+        jaws.context.fillStyle = "Black"
+        jaws.context.strokeStyle = "rgba(200,200,200, 0.0)"
+        i = 0
+        colour = ""
+        for item in items
+            colour = if i == index then "Red" else "Black"
+            jaws.context.fillStyle = colour 
+            jaws.context.fillText(item, 30, 100 + i * 60)
+            i++
+        return
+
+    @
+
 jaws.onload = ->
     jaws.unpack()
     jaws.assets.add("img/block.png")
     jaws.assets.add("img/shotgun.png")
     jaws.assets.add("img/robot.png")
-    jaws.start PushPop
+    jaws.start MenuState
     return
