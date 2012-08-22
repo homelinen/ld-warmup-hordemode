@@ -84,7 +84,7 @@ PushPop = (menu) ->
                 player.can_fire = false
                 setTimeout( ->
                     player.can_fire = true 
-                , 400 * dT 
+                , 400 * getAdjustedDT() 
                 )
 
         i = 0
@@ -151,11 +151,7 @@ PushPop = (menu) ->
             robots.push robot
             canSpawn = false
 
-            dTloc = dT
-            if dTloc > 2 || dTloc < 0.5
-                dTloc = 1
-            
-            timeout = 2000 * dTloc
+            timeout = 2000 * getAdjustedDT()
 
             setTimeout( ->
                 canSpawn = true
@@ -182,6 +178,15 @@ PushPop = (menu) ->
         creature.turn dir
         creature.move xVal, 0
     
+    getAdjustedDT = ->
+        # Adjust the Delta Time to something reasonable
+        dTloc = dT
+        if dTloc > 2 
+            dTloc = 2
+        else if dTloc < 0.5
+            dTloc = 0.5
+        dTloc
+            
     getRandBoolean = ->
         rand = Math.random()
 
