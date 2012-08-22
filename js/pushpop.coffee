@@ -138,9 +138,12 @@ PushPop = (menu) ->
 
         enemyLevel = yLevel - (blockSize * 2)
         if canSpawn
+            xPos = 0 - blockSize;
+            if getRandBoolean()
+                xPos = jaws.width
             robotSprite = new Sprite {
                 image: "img/robot.png", 
-                x: jaws.width - blockSize, 
+                x: xPos, 
                 y: enemyLevel
             }
             robot = new Creature robotSprite, 5, RIGHT
@@ -156,7 +159,6 @@ PushPop = (menu) ->
 
             setTimeout( ->
                 canSpawn = true
-                console.log dTloc
             , timeout)
 
             return
@@ -181,7 +183,15 @@ PushPop = (menu) ->
 
         creature.move xVal, 0
         dir
-        
+    
+    getRandBoolean = ->
+        rand = Math.random()
+        console.log "Rand: #{rand}"
+        if rand > 0.5
+            true
+        else
+            false
+
     doCollide = (creature1, creature2) ->
 
         minx1 = creature1.sprite.x
