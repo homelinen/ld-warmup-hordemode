@@ -1,10 +1,10 @@
 # TODO #
 
 * Draw some better art
-* Store highscores for players
-* Calculate a score for killing robots
+* Store highscores for players between games
 * Create a difficulty multiplier
-* Show Player health
-* Limit Player Ammunition
-* Have a reload cooldown
+* Collision with player shouldn't be a point
+* Play with Player health amount
+* Allow player to increase health
+* Implement backpedalling
 
