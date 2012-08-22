@@ -12,10 +12,16 @@ PushPop = (menu) ->
     blockSize = 32
     playerFacing = ""
     canSpawn = true
-
+    startTime = 0
+    dT = 0.0
+    lastTime = 0
     yLevel = 0
+    fps = document.getElementById("fps")
 
     @setup = ->
+        
+        date = new Date()
+        startTime = date.getTime()
 
         jaws.log(jaws.width)
         block = "img/block.png"
@@ -32,7 +38,12 @@ PushPop = (menu) ->
 
         jaws.log "#{tile_map}"
         playerLevel = yLevel - blockSize
-        playerSprite = new Sprite {image: "img/shotgun.png", x: blockSize, y: playerLevel , anchor: "top-left"}
+        playerSprite = new Sprite {
+            image: "img/shotgun.png", 
+            x: jaws.width / 2 ,
+            y: playerLevel,
+            anchor: "top-left"
+        }
         player = new Creature playerSprite, 10, LEFT
         player.turn(RIGHT)
         player.can_fire = true
@@ -41,12 +52,24 @@ PushPop = (menu) ->
         jaws.preventDefaultKeys ["up", "down", "left", "right", "space"]
 
         bulletSprite = new Sprite { image: "img/bullet.png", x: 0, y: 0 }
+        lastTime = startTime - date.getTime()
+
+        fps.innerHTML = "FPS: #{jaws.game_loop.fps}"
+        setInterval( ->
+            fps.innerHTML = "FPS: #{jaws.game_loop.fps}"
+        , 200)
         return
 
     @update = ->
+        date = new Date()
+        # Delta time
+        curTime = date.getTime() - startTime
+        dT = ((curTime / lastTime) - 1) * 200
+        lastTime = curTime
+
         if (pressed("left")) 
             player.turn(LEFT)
-            player.move(-2, 0)
+            player.move(-2 , 0)
         if (pressed("right")) 
             player.turn(RIGHT)
             player.move(2, 0)
@@ -61,7 +84,7 @@ PushPop = (menu) ->
                 player.can_fire = false
                 setTimeout( ->
                     player.can_fire = true 
-                , 400
+                , 400 * dT 
                 )
 
         i = 0
@@ -85,7 +108,8 @@ PushPop = (menu) ->
         i = 0
         while i < bullets.length
             bullet = bullets[i]
-            bullet.sprite.move(bullet.direction, 0)
+            bulletSpeed = 5
+            bullet.sprite.move(bullet.direction * bulletSpeed, 0)
             if bullet.sprite.x > jaws.width || bullet.sprite.x < 0
                 bullets.splice(i, 1)
                 i--;
@@ -95,6 +119,7 @@ PushPop = (menu) ->
             jaws.switchGameState(menu)
 
         spawnRobot()
+
         return
 
     @draw = ->
@@ -123,9 +148,16 @@ PushPop = (menu) ->
             robots.push robot
             canSpawn = false
 
+            dTloc = dT
+            if dTloc > 2 || dTloc < 0.5
+                dTloc = 1
+            
+            timeout = 2000 * dTloc
+
             setTimeout( ->
                 canSpawn = true
-            , 4000)
+                console.log dTloc
+            , timeout)
 
             return
         
