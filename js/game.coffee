@@ -7,6 +7,7 @@
 
 LEFT = -1
 RIGHT = 1
+scores = []
 
 PushPop = (menu) ->
     blocks = new SpriteList
@@ -29,7 +30,6 @@ PushPop = (menu) ->
         date = new Date()
         startTime = date.getTime()
 
-        jaws.log(jaws.width)
         block = "img/block.png"
         yLevel = 7 * blockSize
         arenaLength = (jaws.width / blockSize) - 1
@@ -37,12 +37,9 @@ PushPop = (menu) ->
         for xPos in [0..arenaLength] 
             blocks.push new Sprite { image: block, x: (xPos * blockSize), y: yLevel }
 
-        jaws.log "Blocks: #{blocks}"
         tile_map = new TileMap { cell_size: [32,32]}
-        jaws.log "Reached: #{tile_map}"
         tile_map.push blocks
 
-        jaws.log "#{tile_map}"
         playerLevel = yLevel - blockSize
         playerSprite = new Sprite {
             image: "img/shotgun.png", 
@@ -146,6 +143,14 @@ PushPop = (menu) ->
             i++
             
         if !player.alive
+            scores.push score
+            menu.clear()
+            for score in scores
+                menu.addMenu({
+                    name: "Score: #{score}",
+                    func: null
+                })
+            menu.reverse()
             jaws.switchGameState(menu)
 
         spawnRobot()
@@ -304,11 +309,9 @@ class Creature
 
 class Menu
     constructor: (@items) ->
-        console.log "Items: #{items}"
         @index = 0;
 
     setup: ->
-        console.log "Setup, items: #{@items}"
         @index = 0
         jaws.preventDefaultKeys ["up", "down", "left", "right", "space"]
         return
@@ -343,6 +346,12 @@ class Menu
         @items.push menu
         return
 
+    clear: ->
+        @items = @items.splice(@items.length - 1, 1)
+
+    reverse: ->
+        @items.reverse()
+
 jaws.onload = ->
 
     MenuState = new Menu([
@@ -352,7 +361,6 @@ jaws.onload = ->
     ])
 
     HighScore = new Menu([
-        {name: "Score 1: 5", func: null},
         { name: "Main Menu", func: MenuState }
     ])
 
