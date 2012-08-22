@@ -5,4 +5,6 @@
 * Calculate a score for killing robots
 * Create a difficulty multiplier
 * Show Player health
+* Limit Player Ammunition
+* Have a reload cooldown
 
