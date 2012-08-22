@@ -94,7 +94,7 @@ PushPop = (menu) ->
                 robots.splice(i, 1)
                 i--
             if robot?
-                robot.turn(moveTowardsPlayer robot)
+                moveTowardsPlayer robot
 
                 if doCollide(player, robot)
                     player.hurt(1)
@@ -172,21 +172,19 @@ PushPop = (menu) ->
 
         #This is the speed of the movement
         xVal = 1
+        dir = RIGHT
 
         if playX < sprX
             #Move Left, as player is left
             xVal = -xVal
             dir = LEFT
-        else if playX == sprX
-            xVal = 0
-            dir = RIGHT
 
+        creature.turn dir
         creature.move xVal, 0
-        dir
     
     getRandBoolean = ->
         rand = Math.random()
-        console.log "Rand: #{rand}"
+
         if rand > 0.5
             true
         else
@@ -228,13 +226,13 @@ class Creature
         speed = @sprite.rect.width
 
         if dir == RIGHT
-            speed = -speed
+            speed = 0
 
         if @direction != dir
             @sprite.flip()
             @direction = dir
 
-            @sprite.move(speed, 0)
+            @sprite.move(-speed, 0)
 
     move: (x, y) ->
         @sprite.move x, y
