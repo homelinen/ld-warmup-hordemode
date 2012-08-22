@@ -1,4 +1,9 @@
-# Simple Game in CoffeeScript
+# BotHordia
+#
+# Author: Calum Gilchrist 
+# Site: http://CalumGilchrist.co.uk
+#
+# All the Main Game Logic Code
 
 LEFT = -1
 RIGHT = 1
