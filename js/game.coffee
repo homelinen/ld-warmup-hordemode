@@ -22,6 +22,7 @@ PushPop = (menu) ->
     lastTime = 0
     yLevel = 0
     fps = document.getElementById("fps")
+    score = 0
 
     @setup = ->
         
@@ -52,6 +53,8 @@ PushPop = (menu) ->
         player = new Creature playerSprite, 10, LEFT
         player.turn(RIGHT)
         player.can_fire = true
+        player.bulletMax = 6
+        player.bulletCount = 6
 
         spawnRobot()
         jaws.preventDefaultKeys ["up", "down", "left", "right", "space"]
@@ -63,6 +66,8 @@ PushPop = (menu) ->
         setInterval( ->
             fps.innerHTML = "FPS: #{jaws.game_loop.fps}"
         , 200)
+
+        score = 0
         return
 
     @update = ->
@@ -82,20 +87,34 @@ PushPop = (menu) ->
             player.rotate(-5)
         if pressed("down")
             player.rotate(5)
+        if pressed("r")
+            reload()
         if pressed("space")
             if player.can_fire
-                tempBullet = new Sprite { image: "img/bullet.png", x: player.sprite.x, y: player.sprite.y }
-                bullets.push { sprite: tempBullet, direction: player.direction }
-                player.can_fire = false
-                setTimeout( ->
-                    player.can_fire = true 
-                , 400 * getAdjustedDT() 
-                )
+                if player.bulletCount < 1
+                    reload()
+                else
+                    tempBullet = new Sprite { 
+                        image: "img/bullet.png", 
+                        x: player.sprite.x, 
+                        y: player.sprite.y 
+                    }
+                    bullets.push { 
+                        sprite: tempBullet,
+                        direction: player.direction 
+                    }
+                    player.bulletCount--
+                    player.can_fire = false
+                    setTimeout( ->
+                        player.can_fire = true 
+                    , 400 * getAdjustedDT() 
+                    )
 
         i = 0
         while i < robots.length
             robot = robots[i]
             if !robot.alive
+                score++
                 robots.splice(i, 1)
                 i--
             if robot?
@@ -142,6 +161,8 @@ PushPop = (menu) ->
 
         for bullet in bullets
             bullet.sprite.draw()
+
+        drawHud()
         return
     
     spawnRobot = ->
@@ -169,7 +190,15 @@ PushPop = (menu) ->
             , timeout)
 
             return
-        
+
+    reload = -> 
+        player.can_fire = false
+        setTimeout( ->
+            player.can_fire = true 
+            player.bulletCount = player.bulletMax
+        , 2000 * getAdjustedDT() 
+        )
+
     moveTowardsPlayer = (creature) ->
         # Move an enemy closer to the player
         # creature The sprite to be moved
@@ -224,7 +253,20 @@ PushPop = (menu) ->
         else 
             false
 
+    drawHud = ->
+        items = ["Ammo: #{player.bulletCount}/#{player.bulletMax}", "Health: #{player.health}", "Score: #{score}"]
+        jaws.context.font = "bold 12pt Serif"
+        jaws.context.lineWidth = 2
+        jaws.context.fillStyle = "Black"
+        jaws.context.strokeStyle = "rgba(200,200,200, 0.0)"
+        i = 0
+        for item in items
+            jaws.context.fillText(item, 10 + 120 * i, 16)
+            i++
+        return
+
     return @
+
 
 class Creature
     constructor: (@sprite, @health, @direction) ->
