@@ -11,6 +11,9 @@ PushPop = (menu) ->
     bullets = []
     blockSize = 32
     playerFacing = ""
+    canSpawn = true
+
+    yLevel = 0
 
     @setup = ->
 
@@ -32,16 +35,9 @@ PushPop = (menu) ->
         playerSprite = new Sprite {image: "img/shotgun.png", x: blockSize, y: playerLevel , anchor: "top-left"}
         player = new Creature playerSprite, 10, LEFT
         player.turn(RIGHT)
+        player.can_fire = true
 
-        robotSprite = new Sprite {
-            image: "img/robot.png", 
-            x: jaws.width - blockSize, 
-            y: playerLevel - blockSize
-        }
-        robot = new Creature robotSprite, 5, RIGHT
-        robot.turn LEFT
-
-        robots.push robot
+        spawnRobot()
         jaws.preventDefaultKeys ["up", "down", "left", "right", "space"]
 
         bulletSprite = new Sprite { image: "img/bullet.png", x: 0, y: 0 }
@@ -59,9 +55,14 @@ PushPop = (menu) ->
         if pressed("down")
             player.rotate(5)
         if pressed("space")
-            tempBullet = new Sprite { image: "img/bullet.png", x: player.sprite.x, y: player.sprite.y }
-            bullets.push { sprite: tempBullet, direction: player.direction }
-            console.log "Shoot!"
+            if player.can_fire
+                tempBullet = new Sprite { image: "img/bullet.png", x: player.sprite.x, y: player.sprite.y }
+                bullets.push { sprite: tempBullet, direction: player.direction }
+                player.can_fire = false
+                setTimeout( ->
+                    player.can_fire = true 
+                , 400
+                )
 
         i = 0
         while i < robots.length
@@ -93,6 +94,7 @@ PushPop = (menu) ->
         if !player.alive
             jaws.switchGameState(menu)
 
+        spawnRobot()
         return
 
     @draw = ->
@@ -106,11 +108,27 @@ PushPop = (menu) ->
             bullet.sprite.draw()
         return
     
-    removeNull = (a) ->
-        a.filter( (val)->
-            val.sprite?
+    spawnRobot = ->
+        # Add a robot every 2 seconds to a side of the screen
 
-        )
+        enemyLevel = yLevel - (blockSize * 2)
+        if canSpawn
+            robotSprite = new Sprite {
+                image: "img/robot.png", 
+                x: jaws.width - blockSize, 
+                y: enemyLevel
+            }
+            robot = new Creature robotSprite, 5, RIGHT
+            robot.turn LEFT
+            robots.push robot
+            canSpawn = false
+
+            setTimeout( ->
+                canSpawn = true
+            , 4000)
+
+            return
+        
     moveTowardsPlayer = (creature) ->
         # Move an enemy closer to the player
         # creature The sprite to be moved
@@ -152,11 +170,17 @@ PushPop = (menu) ->
 class Creature
     constructor: (@sprite, @health, @direction) ->
         @alive = true
+        @isHurt = false
 
     hurt: (damage) ->
-        @health = @health - damage
-        if @health < 1
-            @alive = false
+        if !@ishurt
+            @health = @health - damage
+            if @health < 1
+                @alive = false
+            @isHurt = true
+            setTimeout( -> 
+                @isHurt = false
+            , 500)
 
     turn: (dir) -> 
         speed = @sprite.rect.width
