@@ -181,10 +181,13 @@ PushPop = (menu) ->
     getAdjustedDT = ->
         # Adjust the Delta Time to something reasonable
         dTloc = dT
-        if dTloc > 2 
-            dTloc = 2
-        else if dTloc < 0.5
-            dTloc = 0.5
+        upperLimit = 2
+        lowerLimit = 0.5
+
+        if dTloc > upperLimit
+            dTloc = upperLimit
+        else if dTloc < lowerLimit
+            dTloc = lowerLimit
         dTloc
             
     getRandBoolean = ->
