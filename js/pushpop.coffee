@@ -98,11 +98,17 @@ PushPop = (menu) ->
 
                 if doCollide(player, robot)
                     player.hurt(1)
+                    robot.alive = false
 
-                for bullet in bullets
-
+                j= 0
+                while j< bullets.length
+                    bullet = bullets[j]
                     if doCollide(robot, bullet)
                         robot.hurt(1)
+                        bullets.splice(j, 1)
+                        j--;
+                    j++
+
             i++
         
         i = 0
@@ -146,7 +152,7 @@ PushPop = (menu) ->
                 x: xPos, 
                 y: enemyLevel
             }
-            robot = new Creature robotSprite, 5, RIGHT
+            robot = new Creature robotSprite, 2, RIGHT
             robot.turn LEFT
             robots.push robot
             canSpawn = false
